@@ -30,16 +30,16 @@ namespace TcpServer
             while (true)
             {
                 TcpClient socket = tcpServer.AcceptTcpClient(); // Denne venter hårdt på en client
-                
-                    // Starter ny tråd
-                    Task.Run(() =>
-                    {
+
+                // Starter ny tråd
+                Task.Run(() =>
+                {
                         // Indsætter metoder (delegate) som lambda
                         TcpClient tmpSocket = socket;
-                        Run(tmpSocket);
+                    Run(tmpSocket);
 
-                    });
-                
+                });
+
             }
         }
 
@@ -48,41 +48,33 @@ namespace TcpServer
             using (StreamReader sr = new StreamReader(socket.GetStream()))
             using (StreamWriter sw = new StreamWriter(socket.GetStream()))
             {
-                while (true)
-                {
                     string lineOne = sr.ReadLine();
                     string lineTwo;
 
-                    switch (lineOne.ToLower())
+                    switch (lineOne)
                     {
-                        case "getall":
+                        case "HentAlle":
                             // json list
-                            sw.WriteLine(JsonConvert.SerializeObject(bookList));
-                            sw.Flush();
+                            if (sr.ReadLine().Equals(""))
+                            {
+                                sw.WriteLine(JsonConvert.SerializeObject(bookList));
+                                sw.Flush();
+                            }
                             break;
-                        case "getone":
-                            sw.WriteLine("Enter ISBN:");
-                            sw.Flush();
+                        case "Hent":
                             lineTwo = sr.ReadLine();
                             // json object
                             sw.WriteLine(JsonConvert.SerializeObject(bookList.First(b => b.ISbn == lineTwo)));
                             sw.Flush();
                             break;
-                        case "save":
-                            sw.WriteLine("Enter book as json:");
-                            sw.Flush();
+                        case "Gem":
+                            // enter book as json
                             lineTwo = sr.ReadLine();
-                            // TODO save json object
+                            // save json object
                             bookList.Add(JsonConvert.DeserializeObject<Book>(lineTwo));
                             sw.Flush();
                             break;
-                        default:
-                            sw.WriteLine("Use 'GetAll', 'Get' or 'Save'");
-                            sw.Flush();
-                            break;
-
                     }
-                }
             }
             /// Bogobjekter i json skal skrives i dette format:
             /// {"Title":"I offentlighedens tjeneste","Author":"Politiken","NumberOfPages":400,"ISbn":"9788793772137"}
